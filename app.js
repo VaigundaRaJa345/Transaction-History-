@@ -1,4 +1,4 @@
-﻿const categories = ['Food & dining', 'Transport', 'Shopping', 'Bills & utilities', 'Health', 'Entertainment', 'Salary', 'Transfer', 'Refund', 'Other'];
+const categories = ['Food & dining', 'Transport', 'Shopping', 'Bills & utilities', 'Health', 'Entertainment', 'Salary', 'Transfer', 'Refund', 'Other'];
 
 const seed = [
   { id: 1, accountId: 'cash', amount: 420, transactionType: 'debit', note: 'Swiggy', merchant: 'Swiggy', category: 'Food & dining', date: '2026-08-29', transactionDateTime: new Date('2026-08-29T12:00:00').getTime(), status: 'confirmed', source: 'SEED' },
@@ -88,7 +88,15 @@ data.transactions = (data.transactions || []).map(t => {
   };
 });
 
-data.savings = data.savings || [];
+data.budgets = (Array.isArray(data.budgets) && data.budgets.length > 0) ? data.budgets : [
+  { category: 'Food & dining', limit: 6000 },
+  { category: 'Transport', limit: 3000 },
+  { category: 'Entertainment', limit: 2000 }
+];
+data.recurring = Array.isArray(data.recurring) ? data.recurring : [
+  { name: 'Netflix', type: 'debit', amount: 799, day: 23 }
+];
+data.savings = Array.isArray(data.savings) ? data.savings : [];
 
 const $ = s => (typeof document !== 'undefined' ? document.querySelector(s) : null);
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
