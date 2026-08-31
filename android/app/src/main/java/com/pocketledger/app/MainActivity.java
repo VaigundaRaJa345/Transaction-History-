@@ -112,10 +112,20 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSION_REQUEST);
             return;
         }
-        String history = readBankingSms(getContentResolver());
-        if (pageReady && web != null) {
-            web.evaluateJavascript("window.importSMSHistory(" + history + ");", null);
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final String history = readBankingSms(getContentResolver());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (pageReady && web != null) {
+                            web.evaluateJavascript("window.importSMSHistory(" + history + ");", null);
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 
     private void sendToPage(String event, String json) {
@@ -147,9 +157,14 @@ public class MainActivity extends Activity {
     public static boolean isBankingMessage(String body) {
         if (body == null) return false;
         String s = body.toUpperCase();
-        boolean hasTx = s.contains("DEBIT") || s.contains("CREDIT") || s.contains("SPENT") || s.contains("WITHDRAW") || s.contains("PAID") || s.contains("SENT") || s.contains("TRANSFER");
-        boolean hasCurrency = s.contains("RS") || s.contains("INR") || s.contains("₹");
-        return hasTx && hasCurrency;
+        boolean hasFinancialKeyword = s.contains("DEBIT") || s.contains("CREDIT") || s.contains("SPENT") 
+            || s.contains("WITHDRAW") || s.contains("PAID") || s.contains("SENT") || s.contains("TRANSFER")
+            || s.contains("FIXED DEPOSIT") || s.contains("TERM DEPOSIT") || s.contains("RECURRING DEPOSIT")
+            || s.contains(" FD ") || s.contains(" RD ") || s.contains("INTEREST") || s.contains("MATURITY")
+            || s.contains("LOAN") || s.contains("EMI") || s.contains("REFUND") || s.contains("REVERSAL")
+            || s.contains("CHEQUE") || s.contains("STATEMENT") || s.contains("A/C") || s.contains("ACCOUNT");
+        boolean hasCurrency = s.contains("RS") || s.contains("INR") || s.contains("₹") || s.contains("%");
+        return hasFinancialKeyword && (hasCurrency || s.contains("A/C") || s.contains("ACCOUNT"));
     }
 
     public static String readBankingSms(ContentResolver resolver) {

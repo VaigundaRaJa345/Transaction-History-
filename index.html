@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -18,20 +18,36 @@
       <button class="nav-link" data-view="budgets">Budgets</button>
       <button class="nav-link" data-view="recurring">Recurring</button>
       <button class="nav-link" data-view="savings">Savings</button>
+      <button class="nav-link" data-view="alerts">Alerts</button>
       <button class="nav-link" data-view="audit">Audit Log</button>
     </nav>
     <div class="sync-status"><span class="dot"></span><span id="syncText">Stored on this device</span></div>
   </aside>
   <main>
     <header>
-      <div><p class="eyebrow">PERSONAL FINANCE</p><h1 id="pageTitle">Good evening</h1><p class="muted" id="today"></p></div>
-      <div class="header-actions"><select id="globalAccountFilter" style="font-weight: 700; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: white; color: var(--ink); cursor: pointer;"><option value="all">All Accounts</option></select><button class="ghost" id="resetButton" style="color: var(--coral);">⚠ Reset data</button><button class="ghost" id="historyButton">↗ Scan SMS history</button><button class="ghost" id="smsButton">↗ Import SMS</button><button class="primary" id="addButton">+ Add transaction</button></div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+          <p class="eyebrow" style="margin:0;">PERSONAL FINANCE</p>
+          <span id="agentStatusBadge" style="font-size:11px; background:rgba(13,107,88,0.12); color:var(--green); border:1px solid rgba(13,107,88,0.3); padding:3px 10px; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:5px;"><span class="dot" style="width:6px; height:6px;"></span>AI Agent Active</span>
+        </div>
+        <h1 id="pageTitle">Good evening</h1>
+        <p class="muted" id="today"></p>
+      </div>
+      <div class="header-actions">
+        <select id="globalAccountFilter" style="font-weight: 700; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: white; color: var(--ink); cursor: pointer;">
+          <option value="all">All Accounts</option>
+        </select>
+        <button class="ghost" id="resetButton" style="color: var(--coral);">⚠ Reset data</button>
+        <button class="ghost" id="historyButton">↗ Scan SMS history</button>
+        <button class="ghost" id="smsButton">↗ Test SMS</button>
+        <button class="primary" id="addButton">+ Add transaction</button>
+      </div>
     </header>
 
     <section id="dashboard" class="view active">
       <div class="balance-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
         <div class="balance-card"><div><p>AVAILABLE CASH</p><h2 id="balance">₹0</h2><span id="monthChange">This month</span></div><div class="balance-art">◒</div></div>
-        <div class="balance-card" style="background: linear-gradient(135deg, #0d6b58, #092e28);"><div><p>SAVINGS PORTFOLIO</p><h2 id="totalSavings">₹0</h2><span id="savingsGrowth">Accrued value</span></div><div class="balance-art">🐖</div></div>
+        <div class="balance-card" style="background: linear-gradient(135deg, #0d6b58, #092e28);"><div><p>SAVINGS PORTFOLIO</p><h2 id="totalSavings">₹0</h2><span id="savingsGrowth">Fixed & Recurring Deposits</span></div><div class="balance-art">🐖</div></div>
       </div>
       <div class="stat-grid">
         <article><span class="stat-icon credit">↓</span><p>Income</p><h3 id="income">₹0</h3><small>This month</small></article>
@@ -45,40 +61,126 @@
       <section class="panel"><div class="panel-head"><h2>Recent transactions</h2><button class="text-button" data-view="transactions">View history</button></div><div id="recentTransactions" class="transaction-list"></div></section>
     </section>
 
-    <section id="transactions" class="view"><div class="panel"><div class="panel-head wrap"><h2>Transaction history</h2><div class="filter-row"><select id="typeFilter"><option value="all">All types</option><option value="debit">Expenses</option><option value="credit">Income</option></select><select id="categoryFilter"><option value="all">All categories</option></select></div></div><div id="allTransactions" class="transaction-list"></div></div></section>
-    <section id="accounts" class="view"><div class="section-title"><div><h2>Bank accounts</h2><p class="muted">Accounts are discovered from bank SMS and can be added manually.</p></div><button class="primary" id="accountButton">+ Add account</button></div><div id="accountList" class="budget-grid"></div></section>
-    <section id="budgets" class="view"><div class="section-title"><div><h2>Monthly budgets</h2><p class="muted">Set limits that make room for what matters.</p></div><button class="primary" id="budgetButton">+ Add budget</button></div><div id="budgetList" class="budget-grid"></div></section>
-    <section id="recurring" class="view"><div class="section-title"><div><h2>Recurring payments</h2><p class="muted">Keep regular income and bills visible.</p></div><button class="primary" id="recurringButton">+ Add recurring</button></div><div id="recurringList" class="recurring-list"></div></section>
+    <section id="transactions" class="view">
+      <div class="panel">
+        <div class="panel-head wrap">
+          <h2>Transaction history</h2>
+          <div class="filter-row" style="flex-wrap: wrap;">
+            <input type="search" id="txSearch" placeholder="Search transactions..." style="padding: 8px 12px; font-size: 13px; min-width: 160px;" />
+            <select id="sortOrder" style="padding: 8px 12px; font-size: 13px; font-weight: 600;">
+              <option value="desc">New to Old ▼</option>
+              <option value="asc">Old to New ▲</option>
+            </select>
+            <select id="typeFilter" style="padding: 8px 12px; font-size: 13px;">
+              <option value="all">All types</option>
+              <option value="debit">Expenses</option>
+              <option value="credit">Income</option>
+              <option value="transfer">Transfers</option>
+              <option value="refund">Refunds</option>
+            </select>
+            <select id="categoryFilter" style="padding: 8px 12px; font-size: 13px;">
+              <option value="all">All categories</option>
+            </select>
+          </div>
+        </div>
+        <div id="allTransactions" class="transaction-list"></div>
+      </div>
+    </section>
+
+    <section id="accounts" class="view">
+      <div class="section-title">
+        <div>
+          <h2>Bank accounts</h2>
+          <p class="muted">Accounts discovered from bank SMS and manual records.</p>
+        </div>
+        <button class="primary" id="accountButton">+ Add account</button>
+      </div>
+      <div id="accountList" class="budget-grid"></div>
+    </section>
+
+    <section id="budgets" class="view">
+      <div class="section-title">
+        <div>
+          <h2>Monthly budgets</h2>
+          <p class="muted">Set limits that make room for what matters.</p>
+        </div>
+        <button class="primary" id="budgetButton">+ Add budget</button>
+      </div>
+      <div id="budgetList" class="budget-grid"></div>
+    </section>
+
+    <section id="recurring" class="view">
+      <div class="section-title">
+        <div>
+          <h2>Recurring payments</h2>
+          <p class="muted">Keep regular income and bills visible.</p>
+        </div>
+        <button class="primary" id="recurringButton">+ Add recurring</button>
+      </div>
+      <div id="recurringList" class="recurring-list"></div>
+    </section>
+
     <section id="savings" class="view">
       <div class="section-title">
         <div>
-          <h2>Savings & Investments</h2>
-          <p class="muted">Track Fixed Deposits (FD), Recurring Deposits (RD), PPF, and Mutual Funds with accrued earnings.</p>
+          <h2>Savings & Fixed Deposits</h2>
+          <p class="muted">Intelligent tracking of Fixed Deposits (FD), Recurring Deposits (RD), and investments with accrued returns.</p>
         </div>
         <button class="primary" id="savingsButton">+ Add investment</button>
       </div>
       <div class="stat-grid" style="margin-bottom: 24px;">
-        <article><p>Total Invested</p><h3 id="savingsInvested">₹0</h3></article>
-        <article><p>Current Value</p><h3 id="savingsCurrent" class="amount credit">₹0</h3></article>
-        <article><p>Total Earnings</p><h3 id="savingsEarnings" class="amount credit">₹0</h3></article>
+        <article><p>Total Savings Portfolio</p><h3 id="savingsInvested">₹0</h3><small id="savingsCountText">0 active products</small></article>
+        <article><p>Fixed Deposits (FD)</p><h3 id="savingsFdTotal" class="amount credit">₹0</h3><small id="savingsFdRateText">—</small></article>
+        <article><p>Recurring Deposits (RD)</p><h3 id="savingsRdTotal" class="amount credit">₹0</h3><small id="savingsRdCommitText">—</small></article>
       </div>
+      <div class="panel-head" style="margin: 20px 0 12px;"><h2>Active Banking Products (FD / RD)</h2></div>
+      <div id="activeSavingsProducts" class="budget-grid" style="margin-bottom: 24px;"></div>
+      <div class="panel-head" style="margin: 20px 0 12px;"><h2>Other Investments (SIP / PPF)</h2></div>
       <div id="savingsList" class="budget-grid"></div>
     </section>
+
+    <section id="alerts" class="view">
+      <div class="section-title">
+        <div>
+          <h2>Financial Alerts & Service Activity</h2>
+          <p class="muted">Bank notifications, balance alerts, EMI notices, statements, and security advisories.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head wrap">
+          <h2>Service Messages</h2>
+          <div class="filter-row">
+            <select id="alertFilter" style="padding: 8px 12px; font-size: 13px;">
+              <option value="all">All Alerts</option>
+              <option value="BALANCE_ALERT">Balance Alerts</option>
+              <option value="EMI_NOTICE">Loan & EMI</option>
+              <option value="CREDIT_CARD">Credit Cards</option>
+              <option value="CHEQUE">Cheques</option>
+              <option value="SECURITY">Security / KYC</option>
+            </select>
+          </div>
+        </div>
+        <div id="alertList" class="transaction-list"></div>
+      </div>
+    </section>
+
     <section id="audit" class="view">
       <div class="section-title">
         <div>
-          <h2>Transaction Audit & Diagnostics</h2>
-          <p class="muted">System health, parsing statistics, and ledger validations.</p>
+          <h2>Financial AI Diagnostics & Audit Log</h2>
+          <p class="muted">System intelligence stats, classification confidence, and ledger validations.</p>
         </div>
       </div>
       <div class="two-column">
         <section class="panel">
-          <div class="panel-head"><h2>Ledger Summary</h2></div>
+          <div class="panel-head"><h2>AI Intelligence Summary</h2></div>
           <div style="padding: 16px 0; display: flex; flex-direction: column; gap: 12px;">
-            <div class="budget-meta"><span>SMS Scanned</span><strong id="auditSmsScanned">0</strong></div>
+            <div class="budget-meta"><span>SMS Ingested</span><strong id="auditSmsScanned">0</strong></div>
             <div class="budget-meta"><span>Transactions Created</span><strong id="auditTxCreated">0</strong></div>
-            <div class="budget-meta"><span>Duplicates Ignored</span><strong id="auditDuplicates">0</strong></div>
-            <div class="budget-meta"><span>Transfers Detected</span><strong id="auditTransfers">0</strong></div>
+            <div class="budget-meta"><span>FD / RD Products Discovered</span><strong id="auditSavingsCreated" class="amount credit">0</strong></div>
+            <div class="budget-meta"><span>Service / Alert Messages</span><strong id="auditServiceCreated">0</strong></div>
+            <div class="budget-meta"><span>Duplicates Suppressed</span><strong id="auditDuplicates">0</strong></div>
+            <div class="budget-meta"><span>Internal Transfers Linked</span><strong id="auditTransfers">0</strong></div>
             <div class="budget-meta"><span>Needs Review</span><strong id="auditNeedsReview" style="color: var(--coral);">0</strong></div>
           </div>
         </section>
@@ -88,18 +190,46 @@
             <div class="budget-meta"><span>Total Credits</span><strong id="auditTotalCredits" class="amount credit">₹0</strong></div>
             <div class="budget-meta"><span>Total Debits</span><strong id="auditTotalDebits" class="amount debit">₹0</strong></div>
             <div class="budget-meta"><span>Internal Transfers</span><strong id="auditInternalTransfers">₹0</strong></div>
-            <div class="budget-meta"><span>Genuine Income</span><strong id="auditGenuineIncome" class="amount credit">₹0</strong></div>
-            <div class="budget-meta"><span>Genuine Expenses</span><strong id="auditGenuineExpenses" class="amount debit">₹0</strong></div>
-            <div class="budget-meta"><span>Net Savings</span><strong id="auditNetSavings">₹0</strong></div>
+            <div class="budget-meta"><span>Genuine Monthly Income</span><strong id="auditGenuineIncome" class="amount credit">₹0</strong></div>
+            <div class="budget-meta"><span>Genuine Monthly Expenses</span><strong id="auditGenuineExpenses" class="amount debit">₹0</strong></div>
+            <div class="budget-meta"><span>Net Monthly Savings</span><strong id="auditNetSavings">₹0</strong></div>
           </div>
         </section>
       </div>
       <section class="panel" style="margin-top: 16px;">
-        <div class="panel-head"><h2>Validation Alerts</h2></div>
+        <div class="panel-head"><h2>Ledger Integrity Alerts</h2></div>
         <div id="validationAlerts" style="padding: 16px 0; display: flex; flex-direction: column; gap: 10px;"></div>
       </section>
     </section>
   </main>
+
+  <dialog id="scanProgressDialog">
+    <div style="padding: 24px; display: grid; gap: 16px;">
+      <div class="modal-head">
+        <h2 style="font-size: 19px; display: flex; align-items: center; gap: 8px;">
+          <span class="brand-mark" style="width:24px; height:24px; font-size:14px;">↗</span>
+          Analyzing Banking SMS History...
+        </h2>
+      </div>
+      <p class="muted" style="margin: 0;">Our Financial SMS AI Agent is scanning, classifying, and deduplicating your records.</p>
+      <div class="track" style="height: 12px; margin: 4px 0;">
+        <div id="scanProgressBar" class="fill" style="width: 0%; transition: width 0.15s ease;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700;">
+        <span id="scanProgressText">Processed 0 / 0 SMS</span>
+        <span id="scanProgressPct" class="amount credit">0%</span>
+      </div>
+      <div style="background: var(--paper); border-radius: 10px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+        <div>Transactions: <strong id="scanCountTx" style="font-size: 14px;">0</strong></div>
+        <div>Savings (FD/RD): <strong id="scanCountSavings" class="amount credit" style="font-size: 14px;">0</strong></div>
+        <div>Service Alerts: <strong id="scanCountService" style="font-size: 14px;">0</strong></div>
+        <div>Duplicates: <strong id="scanCountDuplicates" style="font-size: 14px;">0</strong></div>
+        <div style="grid-column: span 2; color: var(--coral);">Needs Review: <strong id="scanCountReview">0</strong></div>
+      </div>
+      <button class="ghost wide" id="cancelScanButton" style="border-color: var(--coral); color: var(--coral); font-weight: 700;">Cancel Scan</button>
+    </div>
+  </dialog>
+
   <dialog id="transactionDialog">
     <form method="dialog" id="transactionForm">
       <div class="modal-head"><h2 id="transactionFormTitle">Add transaction</h2><button class="close" value="cancel">×</button></div>
@@ -128,7 +258,7 @@
       <button class="primary wide" value="submit">Save transaction</button>
     </form>
   </dialog>
-  <dialog id="smsDialog"><form method="dialog" id="smsForm"><div class="modal-head"><h2>Import bank SMS</h2><button class="close" value="cancel">×</button></div><p class="muted">Paste an SMS to test the parser. In the Android app, new bank SMS messages can be passed here automatically after you approve SMS access.</p><textarea name="sms" required placeholder="Example: Rs. 250.00 debited from A/c XX1234 on 30-Aug-26 at SWIGGY. Avl Bal: Rs. 5,000."></textarea><button class="primary wide" value="submit">Parse and add</button></form></dialog>
+  <dialog id="smsDialog"><form method="dialog" id="smsForm"><div class="modal-head"><h2>Test SMS Parser</h2><button class="close" value="cancel">×</button></div><p class="muted">Paste any banking, FD/RD, loan, or service SMS to test the AI Agent classifier.</p><textarea name="sms" required placeholder="Example: Fixed Deposit of INR 1,00,000 opened for 365 days at 7.10% in SBI A/c XX1234. Ref: FD987654."></textarea><button class="primary wide" value="submit">Analyze with AI Agent</button></form></dialog>
   <dialog id="budgetDialog"><form method="dialog" id="budgetForm"><div class="modal-head"><h2>Add monthly budget</h2><button class="close" value="cancel">×</button></div><label>Category<select name="category" id="budgetCategory"></select></label><label>Monthly limit (₹)<input name="limit" type="number" min="1" required /></label><button class="primary wide" value="submit">Save budget</button></form></dialog>
   <dialog id="recurringDialog"><form method="dialog" id="recurringForm"><div class="modal-head"><h2>Add recurring payment</h2><button class="close" value="cancel">×</button></div><label>Name<input name="name" required placeholder="e.g. Netflix" /></label><label>Type<select name="type"><option value="debit">Expense</option><option value="credit">Income</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required /></label><label>Day of month<input name="day" type="number" min="1" max="31" required /></label><button class="primary wide" value="submit">Save recurring payment</button></form></dialog>
   <dialog id="accountDialog">
@@ -181,6 +311,9 @@
       <button class="primary wide" value="submit">Save investment</button>
     </form>
   </dialog>
-  <div id="toast" role="status"></div><script src="cloud-config.js"></script><script src="cloud-sync.js"></script><script src="app.js"></script>
+  <div id="toast" role="status"></div>
+  <script src="cloud-config.js"></script>
+  <script src="cloud-sync.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
