@@ -18,13 +18,14 @@
       <button class="nav-link" data-view="budgets">Budgets</button>
       <button class="nav-link" data-view="recurring">Recurring</button>
       <button class="nav-link" data-view="savings">Savings</button>
+      <button class="nav-link" data-view="audit">Audit Log</button>
     </nav>
     <div class="sync-status"><span class="dot"></span><span id="syncText">Stored on this device</span></div>
   </aside>
   <main>
     <header>
       <div><p class="eyebrow">PERSONAL FINANCE</p><h1 id="pageTitle">Good evening</h1><p class="muted" id="today"></p></div>
-      <div class="header-actions"><button class="ghost" id="resetButton" style="color: var(--coral);">⚠ Reset data</button><button class="ghost" id="historyButton">↗ Scan SMS history</button><button class="ghost" id="smsButton">↗ Import SMS</button><button class="primary" id="addButton">+ Add transaction</button></div>
+      <div class="header-actions"><select id="globalAccountFilter" style="font-weight: 700; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: white; color: var(--ink); cursor: pointer;"><option value="all">All Accounts</option></select><button class="ghost" id="resetButton" style="color: var(--coral);">⚠ Reset data</button><button class="ghost" id="historyButton">↗ Scan SMS history</button><button class="ghost" id="smsButton">↗ Import SMS</button><button class="primary" id="addButton">+ Add transaction</button></div>
     </header>
 
     <section id="dashboard" class="view active">
@@ -63,12 +64,93 @@
       </div>
       <div id="savingsList" class="budget-grid"></div>
     </section>
+    <section id="audit" class="view">
+      <div class="section-title">
+        <div>
+          <h2>Transaction Audit & Diagnostics</h2>
+          <p class="muted">System health, parsing statistics, and ledger validations.</p>
+        </div>
+      </div>
+      <div class="two-column">
+        <section class="panel">
+          <div class="panel-head"><h2>Ledger Summary</h2></div>
+          <div style="padding: 16px 0; display: flex; flex-direction: column; gap: 12px;">
+            <div class="budget-meta"><span>SMS Scanned</span><strong id="auditSmsScanned">0</strong></div>
+            <div class="budget-meta"><span>Transactions Created</span><strong id="auditTxCreated">0</strong></div>
+            <div class="budget-meta"><span>Duplicates Ignored</span><strong id="auditDuplicates">0</strong></div>
+            <div class="budget-meta"><span>Transfers Detected</span><strong id="auditTransfers">0</strong></div>
+            <div class="budget-meta"><span>Needs Review</span><strong id="auditNeedsReview" style="color: var(--coral);">0</strong></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>Financial Reconciliation</h2></div>
+          <div style="padding: 16px 0; display: flex; flex-direction: column; gap: 12px;">
+            <div class="budget-meta"><span>Total Credits</span><strong id="auditTotalCredits" class="amount credit">₹0</strong></div>
+            <div class="budget-meta"><span>Total Debits</span><strong id="auditTotalDebits" class="amount debit">₹0</strong></div>
+            <div class="budget-meta"><span>Internal Transfers</span><strong id="auditInternalTransfers">₹0</strong></div>
+            <div class="budget-meta"><span>Genuine Income</span><strong id="auditGenuineIncome" class="amount credit">₹0</strong></div>
+            <div class="budget-meta"><span>Genuine Expenses</span><strong id="auditGenuineExpenses" class="amount debit">₹0</strong></div>
+            <div class="budget-meta"><span>Net Savings</span><strong id="auditNetSavings">₹0</strong></div>
+          </div>
+        </section>
+      </div>
+      <section class="panel" style="margin-top: 16px;">
+        <div class="panel-head"><h2>Validation Alerts</h2></div>
+        <div id="validationAlerts" style="padding: 16px 0; display: flex; flex-direction: column; gap: 10px;"></div>
+      </section>
+    </section>
   </main>
-  <dialog id="transactionDialog"><form method="dialog" id="transactionForm"><div class="modal-head"><h2>Add transaction</h2><button class="close" value="cancel">×</button></div><label>Type<select name="type"><option value="debit">Expense / debit</option><option value="credit">Income / credit</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required placeholder="0" /></label><label>Merchant / note<input name="note" required placeholder="e.g. Grocery store" /></label><label>Account<select name="account" id="transactionAccount"></select></label><label>Category<select name="category" id="transactionCategory"></select></label><label>Date<input name="date" type="date" required /></label><button class="primary wide" value="submit">Save transaction</button></form></dialog>
+  <dialog id="transactionDialog">
+    <form method="dialog" id="transactionForm">
+      <div class="modal-head"><h2 id="transactionFormTitle">Add transaction</h2><button class="close" value="cancel">×</button></div>
+      <input type="hidden" name="id" />
+      <label>Transaction Type
+        <select name="transactionType" id="txFormType">
+          <option value="debit">Debit / Expense</option>
+          <option value="credit">Credit / Income</option>
+          <option value="transfer_out">Transfer Out (↗)</option>
+          <option value="transfer_in">Transfer In (↙)</option>
+          <option value="refund">Refund (Credit)</option>
+          <option value="reversal">Reversal (Credit)</option>
+          <option value="cash_withdrawal">Cash Withdrawal (Debit)</option>
+          <option value="card_payment">Card Payment (Debit)</option>
+          <option value="fee">Bank Fee (Debit)</option>
+          <option value="interest">Bank Interest (Credit)</option>
+          <option value="adjustment">Adjustment</option>
+        </select>
+      </label>
+      <label>Amount (₹)<input name="amount" type="number" min="1" required placeholder="0" /></label>
+      <label>Merchant / note<input name="note" required placeholder="e.g. Grocery store" /></label>
+      <label>Account<select name="account" id="transactionAccount"></select></label>
+      <label>Category<select name="category" id="transactionCategory"></select></label>
+      <label>Date<input name="date" type="date" required /></label>
+      <label>Reference number / UPI / UTR<input name="referenceNumber" placeholder="e.g. UTR / UPI Ref" /></label>
+      <button class="primary wide" value="submit">Save transaction</button>
+    </form>
+  </dialog>
   <dialog id="smsDialog"><form method="dialog" id="smsForm"><div class="modal-head"><h2>Import bank SMS</h2><button class="close" value="cancel">×</button></div><p class="muted">Paste an SMS to test the parser. In the Android app, new bank SMS messages can be passed here automatically after you approve SMS access.</p><textarea name="sms" required placeholder="Example: Rs. 250.00 debited from A/c XX1234 on 30-Aug-26 at SWIGGY. Avl Bal: Rs. 5,000."></textarea><button class="primary wide" value="submit">Parse and add</button></form></dialog>
   <dialog id="budgetDialog"><form method="dialog" id="budgetForm"><div class="modal-head"><h2>Add monthly budget</h2><button class="close" value="cancel">×</button></div><label>Category<select name="category" id="budgetCategory"></select></label><label>Monthly limit (₹)<input name="limit" type="number" min="1" required /></label><button class="primary wide" value="submit">Save budget</button></form></dialog>
   <dialog id="recurringDialog"><form method="dialog" id="recurringForm"><div class="modal-head"><h2>Add recurring payment</h2><button class="close" value="cancel">×</button></div><label>Name<input name="name" required placeholder="e.g. Netflix" /></label><label>Type<select name="type"><option value="debit">Expense</option><option value="credit">Income</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required /></label><label>Day of month<input name="day" type="number" min="1" max="31" required /></label><button class="primary wide" value="submit">Save recurring payment</button></form></dialog>
-  <dialog id="accountDialog"><form method="dialog" id="accountForm"><div class="modal-head"><h2>Add bank account</h2><button class="close" value="cancel">×</button></div><label>Bank name<input name="bank" required placeholder="e.g. HDFC Bank" /></label><label>Last 4 digits<input name="last4" inputmode="numeric" maxlength="4" required placeholder="1234" /></label><button class="primary wide" value="submit">Save account</button></form></dialog>
+  <dialog id="accountDialog">
+    <form method="dialog" id="accountForm">
+      <div class="modal-head"><h2>Add bank account</h2><button class="close" value="cancel">×</button></div>
+      <label>Bank name<input name="bank" required placeholder="e.g. HDFC Bank" /></label>
+      <label>Account name<input name="name" required placeholder="e.g. Primary Savings" /></label>
+      <label>Last 4 digits<input name="last4" inputmode="numeric" maxlength="4" required placeholder="1234" /></label>
+      <label>Account type
+        <select name="type">
+          <option value="SAVINGS">Savings Account</option>
+          <option value="CURRENT">Current Account</option>
+          <option value="CREDIT_CARD">Credit Card</option>
+          <option value="WALLET">Digital Wallet</option>
+          <option value="CASH">Cash Wallet</option>
+        </select>
+      </label>
+      <label>Opening balance (₹)<input name="openingBalance" type="number" min="0" required placeholder="0" /></label>
+      <label>Opening balance date<input name="openingBalanceDate" type="date" required /></label>
+      <button class="primary wide" value="submit">Save account</button>
+    </form>
+  </dialog>
   <dialog id="savingsDialog">
     <form method="dialog" id="savingsForm">
       <div class="modal-head"><h2>Add investment</h2><button class="close" value="cancel">×</button></div>
