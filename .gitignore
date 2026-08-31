@@ -1,0 +1,11 @@
+# Personal Google Apps Script deployment settings and access secret
+cloud-config.js
+
+# Android/IDE build output
+.gradle/
+android/.gradle/
+android/app/build/
+*.apk
+*.aab
+.idea/
+local.properties

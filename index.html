@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a2c26" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Pocket Ledger</title>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">₹</span><span>Pocket Ledger</span></div>
+    <nav>
+      <button class="nav-link active" data-view="dashboard">Overview</button>
+      <button class="nav-link" data-view="transactions">Transactions</button>
+      <button class="nav-link" data-view="accounts">Accounts</button>
+      <button class="nav-link" data-view="budgets">Budgets</button>
+      <button class="nav-link" data-view="recurring">Recurring</button>
+    </nav>
+    <div class="sync-status"><span class="dot"></span><span id="syncText">Stored on this device</span></div>
+  </aside>
+  <main>
+    <header>
+      <div><p class="eyebrow">PERSONAL FINANCE</p><h1 id="pageTitle">Good evening</h1><p class="muted" id="today"></p></div>
+      <div class="header-actions"><button class="ghost" id="historyButton">↗ Scan SMS history</button><button class="ghost" id="smsButton">↗ Import SMS</button><button class="primary" id="addButton">+ Add transaction</button></div>
+    </header>
+
+    <section id="dashboard" class="view active">
+      <div class="balance-card"><div><p>AVAILABLE BALANCE</p><h2 id="balance">₹0</h2><span id="monthChange">This month</span></div><div class="balance-art">◒</div></div>
+      <div class="stat-grid">
+        <article><span class="stat-icon credit">↓</span><p>Income</p><h3 id="income">₹0</h3><small>This month</small></article>
+        <article><span class="stat-icon debit">↑</span><p>Expenses</p><h3 id="expenses">₹0</h3><small>This month</small></article>
+        <article><span class="stat-icon savings">◎</span><p>Saved</p><h3 id="saved">₹0</h3><small id="savedCaption">0% of income</small></article>
+      </div>
+      <div class="two-column">
+        <section class="panel"><div class="panel-head"><h2>Spending by category</h2><select id="monthPicker"><option value="current">This month</option><option value="all">All time</option></select></div><div id="categoryChart" class="category-chart"></div></section>
+        <section class="panel"><div class="panel-head"><h2>Budget progress</h2><button class="text-button" data-view="budgets">See all</button></div><div id="budgetPreview"></div></section>
+      </div>
+      <section class="panel"><div class="panel-head"><h2>Recent transactions</h2><button class="text-button" data-view="transactions">View history</button></div><div id="recentTransactions" class="transaction-list"></div></section>
+    </section>
+
+    <section id="transactions" class="view"><div class="panel"><div class="panel-head wrap"><h2>Transaction history</h2><div class="filter-row"><select id="typeFilter"><option value="all">All types</option><option value="debit">Expenses</option><option value="credit">Income</option></select><select id="categoryFilter"><option value="all">All categories</option></select></div></div><div id="allTransactions" class="transaction-list"></div></div></section>
+    <section id="accounts" class="view"><div class="section-title"><div><h2>Bank accounts</h2><p class="muted">Accounts are discovered from bank SMS and can be added manually.</p></div><button class="primary" id="accountButton">+ Add account</button></div><div id="accountList" class="budget-grid"></div></section>
+    <section id="budgets" class="view"><div class="section-title"><div><h2>Monthly budgets</h2><p class="muted">Set limits that make room for what matters.</p></div><button class="primary" id="budgetButton">+ Add budget</button></div><div id="budgetList" class="budget-grid"></div></section>
+    <section id="recurring" class="view"><div class="section-title"><div><h2>Recurring payments</h2><p class="muted">Keep regular income and bills visible.</p></div><button class="primary" id="recurringButton">+ Add recurring</button></div><div id="recurringList" class="recurring-list"></div></section>
+  </main>
+  <dialog id="transactionDialog"><form method="dialog" id="transactionForm"><div class="modal-head"><h2>Add transaction</h2><button class="close" value="cancel">×</button></div><label>Type<select name="type"><option value="debit">Expense / debit</option><option value="credit">Income / credit</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required placeholder="0" /></label><label>Merchant / note<input name="note" required placeholder="e.g. Grocery store" /></label><label>Account<select name="account" id="transactionAccount"></select></label><label>Category<select name="category" id="transactionCategory"></select></label><label>Date<input name="date" type="date" required /></label><button class="primary wide" value="submit">Save transaction</button></form></dialog>
+  <dialog id="smsDialog"><form method="dialog" id="smsForm"><div class="modal-head"><h2>Import bank SMS</h2><button class="close" value="cancel">×</button></div><p class="muted">Paste an SMS to test the parser. In the Android app, new bank SMS messages can be passed here automatically after you approve SMS access.</p><textarea name="sms" required placeholder="Example: Rs. 250.00 debited from A/c XX1234 on 30-Aug-26 at SWIGGY. Avl Bal: Rs. 5,000."></textarea><button class="primary wide" value="submit">Parse and add</button></form></dialog>
+  <dialog id="budgetDialog"><form method="dialog" id="budgetForm"><div class="modal-head"><h2>Add monthly budget</h2><button class="close" value="cancel">×</button></div><label>Category<select name="category" id="budgetCategory"></select></label><label>Monthly limit (₹)<input name="limit" type="number" min="1" required /></label><button class="primary wide" value="submit">Save budget</button></form></dialog>
+  <dialog id="recurringDialog"><form method="dialog" id="recurringForm"><div class="modal-head"><h2>Add recurring payment</h2><button class="close" value="cancel">×</button></div><label>Name<input name="name" required placeholder="e.g. Netflix" /></label><label>Type<select name="type"><option value="debit">Expense</option><option value="credit">Income</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required /></label><label>Day of month<input name="day" type="number" min="1" max="31" required /></label><button class="primary wide" value="submit">Save recurring payment</button></form></dialog>
+  <dialog id="accountDialog"><form method="dialog" id="accountForm"><div class="modal-head"><h2>Add bank account</h2><button class="close" value="cancel">×</button></div><label>Bank name<input name="bank" required placeholder="e.g. HDFC Bank" /></label><label>Last 4 digits<input name="last4" inputmode="numeric" maxlength="4" required placeholder="1234" /></label><button class="primary wide" value="submit">Save account</button></form></dialog>
+  <div id="toast" role="status"></div><script src="cloud-config.js"></script><script src="cloud-sync.js"></script><script src="app.js"></script>
+</body>
+</html>
