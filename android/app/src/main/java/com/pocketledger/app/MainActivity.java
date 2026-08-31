@@ -62,6 +62,9 @@ public class MainActivity extends Activity {
                 @Override
                 public void onPageFinished(WebView view, String url) {
                     pageReady = true;
+                    if (checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
+                        importHistory();
+                    }
                 }
             });
             web.setWebChromeClient(new WebChromeClient());

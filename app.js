@@ -1,23 +1,11 @@
 const categories = ['Food & dining', 'Transport', 'Shopping', 'Bills & utilities', 'Health', 'Entertainment', 'Salary', 'Transfer', 'Refund', 'Other'];
 
-const seed = [
-  { id: 1, accountId: 'cash', amount: 420, transactionType: 'debit', note: 'Swiggy', merchant: 'Swiggy', category: 'Food & dining', date: '2026-08-29', transactionDateTime: new Date('2026-08-29T12:00:00').getTime(), status: 'confirmed', source: 'SEED' },
-  { id: 2, accountId: 'cash', amount: 65000, transactionType: 'credit', note: 'Monthly salary', merchant: 'Employer', category: 'Salary', date: '2026-08-28', transactionDateTime: new Date('2026-08-28T10:00:00').getTime(), status: 'confirmed', source: 'SEED' },
-  { id: 3, accountId: 'cash', amount: 1250, transactionType: 'debit', note: 'Electricity bill', merchant: 'State Electricity Board', category: 'Bills & utilities', date: '2026-08-27', transactionDateTime: new Date('2026-08-27T14:30:00').getTime(), status: 'confirmed', source: 'SEED' },
-  { id: 4, accountId: 'cash', amount: 180, transactionType: 'debit', note: 'Uber', merchant: 'Uber', category: 'Transport', date: '2026-08-26', transactionDateTime: new Date('2026-08-26T18:15:00').getTime(), status: 'confirmed', source: 'SEED' },
-  { id: 5, accountId: 'cash', amount: 799, transactionType: 'debit', note: 'Netflix', merchant: 'Netflix', category: 'Entertainment', date: '2026-08-23', transactionDateTime: new Date('2026-08-23T09:00:00').getTime(), status: 'confirmed', source: 'SEED' }
-];
+const seed = [];
 
 let data = (typeof localStorage !== 'undefined' && JSON.parse(localStorage.getItem('pocket-ledger-v1') || 'null')) || {
-  transactions: seed,
-  budgets: [
-    { category: 'Food & dining', limit: 6000 },
-    { category: 'Transport', limit: 3000 },
-    { category: 'Entertainment', limit: 2000 }
-  ],
-  recurring: [
-    { name: 'Netflix', type: 'debit', amount: 799, day: 23 }
-  ],
+  transactions: [],
+  budgets: [],
+  recurring: [],
   accounts: [
     {
       id: 'cash',
@@ -64,7 +52,12 @@ if (!data.accounts.some(a => a.id === 'cash')) {
   });
 }
 
-data.transactions = (data.transactions || []).map(t => {
+// Purge all sample/seed transactions from legacy storage
+data.transactions = (data.transactions || []).filter(t => {
+  if (t.source === 'SEED' || [1, 2, 3, 4, 5].includes(t.id)) return false;
+  if (['Swiggy', 'Monthly salary', 'Electricity bill', 'Uber', 'Netflix'].includes(t.note) && t.accountId === 'cash' && t.date === '2026-08-29') return false;
+  return true;
+}).map(t => {
   let type = t.transactionType || t.type || 'debit';
   return {
     id: t.id || (Date.now() + Math.random()),
@@ -88,14 +81,8 @@ data.transactions = (data.transactions || []).map(t => {
   };
 });
 
-data.budgets = (Array.isArray(data.budgets) && data.budgets.length > 0) ? data.budgets : [
-  { category: 'Food & dining', limit: 6000 },
-  { category: 'Transport', limit: 3000 },
-  { category: 'Entertainment', limit: 2000 }
-];
-data.recurring = Array.isArray(data.recurring) ? data.recurring : [
-  { name: 'Netflix', type: 'debit', amount: 799, day: 23 }
-];
+data.budgets = Array.isArray(data.budgets) ? data.budgets : [];
+data.recurring = Array.isArray(data.recurring) ? data.recurring : [];
 data.savings = Array.isArray(data.savings) ? data.savings : [];
 
 const $ = s => (typeof document !== 'undefined' ? document.querySelector(s) : null);
@@ -582,7 +569,7 @@ function render() {
   // Recent transactions list
   let activeTxs = data.transactions.filter(t => activeAccount === 'all' || t.accountId === activeAccount);
   if ($('#recentTransactions')) {
-    $('#recentTransactions').innerHTML = activeTxs.slice().sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 5).map(txRow).join('');
+    $('#recentTransactions').innerHTML = activeTxs.slice().sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 5).map(txRow).join('') || '<p class="muted">No transactions yet. Tap \'Scan SMS History\' or add a transaction to get started.</p>';
   }
 
   // Transaction history filter
