@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(incomingSms, IntentFilter(SmsReceiver.NEW_SMS_ACTION), RECEIVER_NOT_EXPORTED)
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(incomingSms, IntentFilter(SmsReceiver.NEW_SMS_ACTION), Context.RECEIVER_NOT_EXPORTED)
         else registerReceiver(incomingSms, IntentFilter(SmsReceiver.NEW_SMS_ACTION))
     }
     override fun onDestroy() { unregisterReceiver(incomingSms); web.destroy(); super.onDestroy() }

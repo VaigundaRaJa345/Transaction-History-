@@ -9,3 +9,4 @@ android/app/build/
 *.aab
 .idea/
 local.properties
+node_modules/

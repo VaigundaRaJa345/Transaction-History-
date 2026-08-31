@@ -1,0 +1,19 @@
+{
+  "name": "pocket-ledger",
+  "version": "1.0.0",
+  "description": "An installable, responsive private finance tracker PWA.",
+  "main": "app.js",
+  "scripts": {
+    "start": "http-server -p 8080"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "pwa",
+    "finance-tracker",
+    "expense-tracker"
+  ],
+  "author": "",
+  "license": "ISC"
+}
