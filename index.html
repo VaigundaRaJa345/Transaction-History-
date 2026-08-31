@@ -17,6 +17,7 @@
       <button class="nav-link" data-view="accounts">Accounts</button>
       <button class="nav-link" data-view="budgets">Budgets</button>
       <button class="nav-link" data-view="recurring">Recurring</button>
+      <button class="nav-link" data-view="savings">Savings</button>
     </nav>
     <div class="sync-status"><span class="dot"></span><span id="syncText">Stored on this device</span></div>
   </aside>
@@ -27,7 +28,10 @@
     </header>
 
     <section id="dashboard" class="view active">
-      <div class="balance-card"><div><p>AVAILABLE BALANCE</p><h2 id="balance">₹0</h2><span id="monthChange">This month</span></div><div class="balance-art">◒</div></div>
+      <div class="balance-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <div class="balance-card"><div><p>AVAILABLE CASH</p><h2 id="balance">₹0</h2><span id="monthChange">This month</span></div><div class="balance-art">◒</div></div>
+        <div class="balance-card" style="background: linear-gradient(135deg, #0d6b58, #092e28);"><div><p>SAVINGS PORTFOLIO</p><h2 id="totalSavings">₹0</h2><span id="savingsGrowth">Accrued value</span></div><div class="balance-art">🐖</div></div>
+      </div>
       <div class="stat-grid">
         <article><span class="stat-icon credit">↓</span><p>Income</p><h3 id="income">₹0</h3><small>This month</small></article>
         <article><span class="stat-icon debit">↑</span><p>Expenses</p><h3 id="expenses">₹0</h3><small>This month</small></article>
@@ -44,12 +48,57 @@
     <section id="accounts" class="view"><div class="section-title"><div><h2>Bank accounts</h2><p class="muted">Accounts are discovered from bank SMS and can be added manually.</p></div><button class="primary" id="accountButton">+ Add account</button></div><div id="accountList" class="budget-grid"></div></section>
     <section id="budgets" class="view"><div class="section-title"><div><h2>Monthly budgets</h2><p class="muted">Set limits that make room for what matters.</p></div><button class="primary" id="budgetButton">+ Add budget</button></div><div id="budgetList" class="budget-grid"></div></section>
     <section id="recurring" class="view"><div class="section-title"><div><h2>Recurring payments</h2><p class="muted">Keep regular income and bills visible.</p></div><button class="primary" id="recurringButton">+ Add recurring</button></div><div id="recurringList" class="recurring-list"></div></section>
+    <section id="savings" class="view">
+      <div class="section-title">
+        <div>
+          <h2>Savings & Investments</h2>
+          <p class="muted">Track Fixed Deposits (FD), Recurring Deposits (RD), PPF, and Mutual Funds with accrued earnings.</p>
+        </div>
+        <button class="primary" id="savingsButton">+ Add investment</button>
+      </div>
+      <div class="stat-grid" style="margin-bottom: 24px;">
+        <article><p>Total Invested</p><h3 id="savingsInvested">₹0</h3></article>
+        <article><p>Current Value</p><h3 id="savingsCurrent" class="amount credit">₹0</h3></article>
+        <article><p>Total Earnings</p><h3 id="savingsEarnings" class="amount credit">₹0</h3></article>
+      </div>
+      <div id="savingsList" class="budget-grid"></div>
+    </section>
   </main>
   <dialog id="transactionDialog"><form method="dialog" id="transactionForm"><div class="modal-head"><h2>Add transaction</h2><button class="close" value="cancel">×</button></div><label>Type<select name="type"><option value="debit">Expense / debit</option><option value="credit">Income / credit</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required placeholder="0" /></label><label>Merchant / note<input name="note" required placeholder="e.g. Grocery store" /></label><label>Account<select name="account" id="transactionAccount"></select></label><label>Category<select name="category" id="transactionCategory"></select></label><label>Date<input name="date" type="date" required /></label><button class="primary wide" value="submit">Save transaction</button></form></dialog>
   <dialog id="smsDialog"><form method="dialog" id="smsForm"><div class="modal-head"><h2>Import bank SMS</h2><button class="close" value="cancel">×</button></div><p class="muted">Paste an SMS to test the parser. In the Android app, new bank SMS messages can be passed here automatically after you approve SMS access.</p><textarea name="sms" required placeholder="Example: Rs. 250.00 debited from A/c XX1234 on 30-Aug-26 at SWIGGY. Avl Bal: Rs. 5,000."></textarea><button class="primary wide" value="submit">Parse and add</button></form></dialog>
   <dialog id="budgetDialog"><form method="dialog" id="budgetForm"><div class="modal-head"><h2>Add monthly budget</h2><button class="close" value="cancel">×</button></div><label>Category<select name="category" id="budgetCategory"></select></label><label>Monthly limit (₹)<input name="limit" type="number" min="1" required /></label><button class="primary wide" value="submit">Save budget</button></form></dialog>
   <dialog id="recurringDialog"><form method="dialog" id="recurringForm"><div class="modal-head"><h2>Add recurring payment</h2><button class="close" value="cancel">×</button></div><label>Name<input name="name" required placeholder="e.g. Netflix" /></label><label>Type<select name="type"><option value="debit">Expense</option><option value="credit">Income</option></select></label><label>Amount (₹)<input name="amount" type="number" min="1" required /></label><label>Day of month<input name="day" type="number" min="1" max="31" required /></label><button class="primary wide" value="submit">Save recurring payment</button></form></dialog>
   <dialog id="accountDialog"><form method="dialog" id="accountForm"><div class="modal-head"><h2>Add bank account</h2><button class="close" value="cancel">×</button></div><label>Bank name<input name="bank" required placeholder="e.g. HDFC Bank" /></label><label>Last 4 digits<input name="last4" inputmode="numeric" maxlength="4" required placeholder="1234" /></label><button class="primary wide" value="submit">Save account</button></form></dialog>
+  <dialog id="savingsDialog">
+    <form method="dialog" id="savingsForm">
+      <div class="modal-head"><h2>Add investment</h2><button class="close" value="cancel">×</button></div>
+      <label>Type
+        <select name="type" id="savingType">
+          <option value="fd">Fixed Deposit (FD)</option>
+          <option value="rd">Recurring Deposit (RD)</option>
+          <option value="sip">Mutual Fund (SIP)</option>
+          <option value="ppf">PPF (Provident Fund)</option>
+          <option value="other">Other / Custom</option>
+        </select>
+      </label>
+      <label>Name / institution
+        <input name="name" required placeholder="e.g. HDFC Bank FD" />
+      </label>
+      <label id="savingAmountLabel">Principal amount (₹)
+        <input name="amount" type="number" min="1" required placeholder="0" />
+      </label>
+      <label>Annual interest / growth rate (%)
+        <input name="rate" type="number" step="0.01" min="0" required placeholder="e.g. 7.1" />
+      </label>
+      <label>Tenure (months)
+        <input name="tenure" type="number" min="1" required placeholder="e.g. 12" />
+      </label>
+      <label>Start date
+        <input name="date" type="date" required />
+      </label>
+      <button class="primary wide" value="submit">Save investment</button>
+    </form>
+  </dialog>
   <div id="toast" role="status"></div><script src="cloud-config.js"></script><script src="cloud-sync.js"></script><script src="app.js"></script>
 </body>
 </html>
