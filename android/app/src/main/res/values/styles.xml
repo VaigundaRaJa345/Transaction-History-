@@ -1,13 +1,8 @@
-﻿<resources>
-    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:colorAccent">#0d6b58</item>
-        <item name="android:navigationBarColor">#092e28</item>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <item name="android:statusBarColor">#092e28</item>
-    </style>
-
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#092e28</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="postSplashScreenTheme">@style/AppTheme</item>
+        <item name="android:navigationBarColor">#092e28</item>
+        <item name="android:windowBackground">#092e28</item>
     </style>
 </resources>
