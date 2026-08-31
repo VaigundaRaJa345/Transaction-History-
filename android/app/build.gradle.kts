@@ -10,12 +10,25 @@ android { namespace = "com.pocketledger.app"; compileSdk = 35
         }
     }
 
-    sourceSets {
-        getByName("main") {
-            assets.srcDirs("../../")
-            assets.include("*.html", "*.css", "*.js", "*.webmanifest")
-        }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+tasks.register<Copy>("copyWebAssets") {
+    from("../../") {
+        include("index.html", "styles.css", "app.js", "cloud-sync.js", "cloud-config.js", "manifest.webmanifest")
+    }
+    into("src/main/assets")
+}
+
+tasks.named("preBuild") {
+    dependsOn("copyWebAssets")
 }
 
 dependencies {

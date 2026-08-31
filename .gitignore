@@ -10,3 +10,4 @@ android/app/build/
 .idea/
 local.properties
 node_modules/
+android/app/src/main/assets/
